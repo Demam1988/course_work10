@@ -7,15 +7,17 @@ filename = 'operations.json'
 def load_data(filename):
     # Чтение данных из файла operations.json
     with open(filename, 'r', encoding='utf-8') as file:
-        operations_data = json.load(file)
-        return operations_data
-
-
-def filter_sort(data):
-    # вывод 5-ти последних операций
-    items = [item for item in data if item.get('state') == "EXECUTED"]
-    items.sort(key=lambda x: x.get('date'), reverse=True)
-    return items[-5:]
+        result = json.load(file)
+        result_executed = []
+        for operation in result:
+            try:
+                if operation["state"] == "EXECUTED":
+                    result_executed.append(operation)
+            except LookupError:
+                result_error = "Операция не выполнена"
+        last_operations = result_executed[-5:]
+        sorted_operations = sorted(last_operations, key=lambda x: x["date"], reverse=True)
+        return sorted_operations
 
 
 def mask_card(str_):
@@ -50,14 +52,15 @@ def prepare_data(sorted_data):
         masket_from_account = mask_card(data.get('from'))
         masket_to_account = mask_card(data.get('to'))
         amount = data['operationAmount']['amount']
+        name = data['operationAmount']['currency']['name']
 
         pripared_operation = {
             'date': date,
             'description': description,
             'from_account': masket_from_account,
             'to_account': masket_to_account,
-            'amount': amount
-
+            'amount': amount,
+            'name': name
         }
         pripared_operations.append(pripared_operation)
     return pripared_operations
